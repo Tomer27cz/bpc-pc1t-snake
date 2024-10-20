@@ -7,6 +7,7 @@
 
 #include <windows.h>
 #include "../snake/snakeStruct.h"
+#include "winDrawText.h"
 #include "math.h"
 
 void DrawScore(HDC hdc, struct gameData *gameData, RECT clientRect, int topOffset);
@@ -21,24 +22,11 @@ void DrawScore(HDC hdc, struct gameData *gameData, RECT clientRect, int topOffse
     char scoreText[50];
     sprintf(scoreText, "Score: %d", gameData->score);
 
-    SetBkMode(hdc, TRANSPARENT);
-    SetTextColor(hdc, RGB(0, 0, 0));
+    char levelText[50];
+    sprintf(levelText, "Level: %d\nClockDelay: %d", gameData->level, gameData->clockDelay);
 
-    HFONT hFont = GetStockObject(DEFAULT_GUI_FONT);
-    LOGFONT lf;
-    GetObject(hFont, sizeof(LOGFONT), &lf);
-
-    lf.lfHeight = topOffset;
-
-    HFONT hNewFont = CreateFontIndirect(&lf);
-    HFONT hOldFont = (HFONT)SelectObject(hdc, hNewFont);
-
-    // Do text drawing
-    DrawText(hdc, scoreText, strlen(scoreText), &clientRect, DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOCLIP);
-
-    // Always select the old font back into the DC
-    SelectObject(hdc, hOldFont);
-    DeleteObject(hNewFont);
+    DrawTextSimple(hdc, clientRect, scoreText, topOffset, RGB(0, 0, 0), DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOCLIP);
+    DrawTextSimple(hdc, clientRect, levelText, topOffset/2, RGB(0, 0, 0), DT_RIGHT | DT_TOP | DT_NOCLIP);
 }
 void DrawGrid(HDC hdc, RECT clientRect, double squareWidth, double squareHeight, int GRID_COLS, int GRID_ROWS, int topOffset) {
     HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));  // Black pen for grid lines

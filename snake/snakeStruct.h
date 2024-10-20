@@ -23,7 +23,13 @@ struct gameData {
 
     int gameOver;
     int score;
-    int speed;
+
+    int level;
+    int maxLevel;
+
+    int clockDelay;
+    int minClockDelay;
+    int speedStep;
 
     int x;
     int y;
@@ -72,7 +78,16 @@ void setup(struct gameData *gameData, int WIDTH, int HEIGHT) {
     gameData->direction = 0;
     gameData->tailLen = 1;
     gameData->score = 0;
-    gameData->speed = 0;
+
+    gameData->level = 1;
+    gameData->maxLevel = (WIDTH * HEIGHT) / 10;
+
+    int sizeConstant = (WIDTH + HEIGHT) / 2;
+
+    // clockDelay: 400 is very slow, 75 is very fast
+    gameData->clockDelay = 6000 / sizeConstant; // maxClockDelay - 6s to cross
+    gameData->minClockDelay = 2000 / sizeConstant; // minClockDelay - 2s to cross
+    gameData->speedStep = (gameData->clockDelay / gameData->minClockDelay) / gameData->maxLevel; // speedStep - subtract from clockDelay at level change
 
     dInitQueue(&gameData->queue);
 

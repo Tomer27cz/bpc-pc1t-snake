@@ -78,9 +78,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             DispatchMessageA(&Message);
         }
 
+        Sleep(State == 1 ? gameData.clockDelay : 500);
+
         logic(&gameData);
         InvalidateRect(hwnd, NULL, TRUE);
-        Sleep(200-gameData.speed);
 
         if (gameData.gameOver) {
             State = 2;

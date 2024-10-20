@@ -14,10 +14,13 @@ void logic(struct gameData *gameData) {
     if (gameData->direction == 0 || gameData->gameOver == 1)
         return;
 
-    // Previous position of the tail
-    point prevPoint = gameData->tail[0];
+    // Process the direction queue
+    if (!dIsEmpty(&gameData->queue)) {
+        gameData->direction = dDequeue(&gameData->queue);
+    }
 
-    // Set the position of the tail to the current position of the head
+    // Previous position of the tail , Set the position of the tail to the current position of the head
+    point prevPoint = gameData->tail[0];
     gameData->tail[0] = (point) {gameData->x, gameData->y};
 
     point prevPoint2;
@@ -25,16 +28,14 @@ void logic(struct gameData *gameData) {
         // Save the current coordinates of the tail at position i
         prevPoint2 = gameData->tail[i];
 
-        // Set the coordinates at position i to the previous coordinates at position i-1
+        // Set the coordinates at position i to the previous coordinates at position i-1 (if tail is stacked = dont)
+        //if (gameData->tail[i].x != gameData->tail[i-1].x && gameData->tail[i].y != gameData->tail[i-1].y) {
+        //    gameData->tail[i] = prevPoint;
+        //}
         gameData->tail[i] = prevPoint;
 
         // Set the coordinates for the next iteration
         prevPoint = prevPoint2;
-    }
-
-    // Process the direction queue
-    if (!dIsEmpty(&gameData->queue)) {
-        gameData->direction = dDequeue(&gameData->queue);
     }
 
     // Move the head in the direction
@@ -56,8 +57,9 @@ void logic(struct gameData *gameData) {
     }
 
     // Checks for collision with the wall
-    if (gameData->x < 0 || gameData->x >= gameData->width || gameData->y < 0 || gameData->y >= gameData->height)
+    if (gameData->x < 0 || gameData->x >= gameData->width || gameData->y < 0 || gameData->y >= gameData->height) {
         gameData->gameOver = 1;
+    }
 
     // Checks for collision with the tail
     for (int i = 0; i < gameData->tailLen; i++) {
@@ -70,10 +72,16 @@ void logic(struct gameData *gameData) {
         if (gameData->x == gameData->fruits.array[i].x && gameData->y == gameData->fruits.array[i].y) {
             // Increase the score and the length of the tail
             gameData->score += 10;
-            gameData->tailLen++;
+            gameData->tailLen += 1;
 
-            if (gameData->speed < 100) {
-                gameData->speed++;
+            // Check if the tail length is divisible by 10
+            if (gameData->tailLen % 10 == 0) {
+                gameData->level++;
+
+                // Increase the speed of the snake (decrease clockDelay)
+                if ((gameData->clockDelay-gameData->speedStep) > gameData->minClockDelay) {
+                    gameData->clockDelay -= gameData->speedStep;
+                }
             }
 
             // Remove the fruit from the array
@@ -99,16 +107,16 @@ void changeDirection(struct gameData *gameData, int direction) {
 
         switch (direction){
             case 1: // UP
-                if (lastDirection == 2) {return;}
+                if (lastDirection == 2 || lastDirection == 1) {return;}
                 break;
             case 2: // DOWN
-                if (lastDirection == 1) {return;}
+                if (lastDirection == 1 || lastDirection == 2) {return;}
                 break;
             case 3: // LEFT
-                if (lastDirection == 4) {return;}
+                if (lastDirection == 4 || lastDirection == 3) {return;}
                 break;
             case 4: // RIGHT
-                if (lastDirection == 3) {return;}
+                if (lastDirection == 3 || lastDirection == 4) {return;}
                 break;
             default:
                 break;
