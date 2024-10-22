@@ -2,6 +2,14 @@
 #include <conio.h>
 #include <windows.h>
 
+#define WIDTH 10
+#define HEIGHT 10
+#define MAX_FRUITS 10
+#define SAVE_FILE "scores.txt"
+#define MAX_BUFFER_SIZE 4
+#define MIN_TIME_TO_CROSS 2000 // 2 seconds
+#define MAX_TIME_TO_CROSS 6000 // 6 seconds
+
 #include "snake/snakeStruct.h"
 #include "snake/snakeLogic.h"
 
@@ -16,11 +24,7 @@
 
 #include "lib/statFile.h"
 #include "lib/inputBuffer.h"
-
-#define SAVE_FILE "scores.txt"
-
-#define WIDTH 20
-#define HEIGHT 20
+#include "lib/fruitArray.h"
 
 static int Running = 1;
 static int State = 0;
@@ -65,7 +69,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
 
-    setup(&gameData, WIDTH, HEIGHT);
+    setup(&gameData);
     ShowWindow(hwnd, nCmdShow);
 
     while (Running) {
@@ -170,7 +174,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     break;
                 case 0x0D: // Enter
                     writeScore(SAVE_FILE, &gameData);
-                    setup(&gameData, WIDTH, HEIGHT);
+                    setup(&gameData);
 
                     State = 1;
                     InvalidateRect(hwnd, NULL, TRUE);
@@ -208,7 +212,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 //        }
 //    }
 //
-//    setup(&gameData, WIDTH, HEIGHT);
+//    setup(&gameData);
 //
 //    while (Running) {
 //        consoleInput(&gameData);

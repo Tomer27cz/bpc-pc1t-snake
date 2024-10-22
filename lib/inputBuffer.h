@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_BUFFER_SIZE 4
+
 
 // Queue structure
 typedef struct {
@@ -38,7 +38,6 @@ int dIsEmpty(DirectionQueue* q) {
 // Enqueue a new direction
 void dEnqueue(DirectionQueue* q, int direction) {
     if (dIsFull(q)) {
-        printf("Queue is full, cannot add direction.\n");
         return;
     }
     q->rear = (q->rear + 1) % MAX_BUFFER_SIZE;  // Circular buffer behavior
@@ -49,7 +48,6 @@ void dEnqueue(DirectionQueue* q, int direction) {
 // Dequeue and return the next direction
 int dDequeue(DirectionQueue* q) {
     if (dIsEmpty(q)) {
-        printf("Queue is empty, no direction to process.\n");
         return -1;  // Return invalid direction when empty
     }
     int direction = q->buffer[q->front];

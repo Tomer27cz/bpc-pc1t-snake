@@ -10,10 +10,8 @@
 #include "../lib/fruitArray.h"
 #include "../lib/inputBuffer.h"
 
-#define MAX_FRUITS 10
-
 struct gameData {
-    point tail[256];
+    point tail[WIDTH*HEIGHT];
     int tailLen;
 
     FruitArray fruits;
@@ -65,7 +63,7 @@ void generateFruit(struct gameData *gameData) {
     }
 }
 
-void setup(struct gameData *gameData, int WIDTH, int HEIGHT) {
+void setup(struct gameData *gameData) {
     gameData->tail[0].x = (WIDTH / 2) - 1;
     gameData->tail[0].y = HEIGHT / 2;
 
@@ -85,9 +83,9 @@ void setup(struct gameData *gameData, int WIDTH, int HEIGHT) {
     int sizeConstant = (WIDTH + HEIGHT) / 2;
 
     // clockDelay: 400 is very slow, 75 is very fast
-    gameData->clockDelay = 6000 / sizeConstant; // maxClockDelay - 6s to cross
-    gameData->minClockDelay = 2000 / sizeConstant; // minClockDelay - 2s to cross
-    gameData->speedStep = (gameData->clockDelay / gameData->minClockDelay) / gameData->maxLevel; // speedStep - subtract from clockDelay at level change
+    gameData->clockDelay = MAX_TIME_TO_CROSS / sizeConstant < 400 ? MAX_TIME_TO_CROSS / sizeConstant : 400; // maxClockDelay
+    gameData->minClockDelay = MIN_TIME_TO_CROSS / sizeConstant > 75 ? MIN_TIME_TO_CROSS / sizeConstant : 75; // minClockDelay
+    gameData->speedStep = (gameData->clockDelay - gameData->minClockDelay) / gameData->maxLevel; // speedStep - subtract from clockDelay at level change
 
     dInitQueue(&gameData->queue);
 

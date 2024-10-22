@@ -60,7 +60,6 @@ int* getTopScores(const char *filename, int *top_count) {
 
 void writeScore(const char *filename, struct gameData *gameData) {
     if (gameData->score == 0) {
-        printf("\nScore is zero! Not saving.\n");
         return;
     }
 
@@ -79,7 +78,6 @@ void writeScore(const char *filename, struct gameData *gameData) {
     }
 
     fprintf(file, "%d\n", gameData->score);
-    printf("\nScore saved successfully: %d\n", gameData->score);
     fclose(file);
 }
 

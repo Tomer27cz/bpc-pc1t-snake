@@ -79,7 +79,7 @@ void logic(struct gameData *gameData) {
                 gameData->level++;
 
                 // Increase the speed of the snake (decrease clockDelay)
-                if ((gameData->clockDelay-gameData->speedStep) > gameData->minClockDelay) {
+                if ((gameData->clockDelay - gameData->speedStep) > gameData->minClockDelay) {
                     gameData->clockDelay -= gameData->speedStep;
                 }
             }
