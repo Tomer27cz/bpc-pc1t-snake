@@ -1,22 +1,14 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_WINDRAWSNAKE_H
-#define BPC_PC1T_SNAKE_WINDRAWSNAKE_H
+#include "../include/winDrawSnake.h"
 
 #include <windows.h>
-#include "../snake/snakeStruct.h"
-#include "winDrawText.h"
 #include "math.h"
+#include "stdio.h"
 
-void DrawScore(HDC hdc, struct gameData *gameData, RECT clientRect, int topOffset);
-
-void DrawGrid(HDC hdc, RECT clientRect, double squareWidth, double squareHeight, int GRID_COLS, int GRID_ROWS, int topOffset);
-
-void FillSquareAt(HDC hdc, int x, int y, double squareWidth, double squareHeight, int color, int topOffset);
-void DrawSnakeAndFruit(HDC hdc, struct gameData *gameData, double squareWidth, double squareHeight, int topOffset);
-
+#include "../include/winDrawText.h"
 
 void DrawScore(HDC hdc, struct gameData *gameData, RECT clientRect, int topOffset) {
     char scoreText[50];
@@ -103,5 +95,3 @@ void DrawSnake(HDC hdc, struct gameData *gameData, RECT clientRect, double squar
     DrawGrid(hdc, clientRect, squareWidth, squareHeight, GRID_COLS, GRID_ROWS, topOffset);
     DrawSnakeAndFruit(hdc, gameData, squareWidth, squareHeight, topOffset);
 }
-
-#endif //BPC_PC1T_SNAKE_WINDRAWSNAKE_H

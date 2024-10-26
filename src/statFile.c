@@ -1,14 +1,12 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_STATFILE_H
-#define BPC_PC1T_SNAKE_STATFILE_H
-
 #include <windows.h>
-#include "../snake/snakeStruct.h"
 #include "stdio.h"
 #include "stdlib.h"
+
+#include "../include/snake.h"
 
 // Function to compare two integers for qsort
 int compare(const void *a, const void *b) {
@@ -80,5 +78,3 @@ void writeScore(const char *filename, struct gameData *gameData) {
     fprintf(file, "%d\n", gameData->score);
     fclose(file);
 }
-
-#endif //BPC_PC1T_SNAKE_STATFILE_H

@@ -1,18 +1,8 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_FRUITARRAY_H
-#define BPC_PC1T_SNAKE_FRUITARRAY_H
-
-#include "../snake/snakeStruct.h"
-
-typedef struct {
-    point array[MAX_FRUITS];
-    int front;
-    int rear;
-    int size;
-} FruitArray;
+#include "../include/fruitArray.h"
 
 // Initialize the fruit array
 void fInitArray(FruitArray* f) {
@@ -53,5 +43,3 @@ int fArrayRemove(FruitArray* f, point fruit) {
     f->size--;
     return index;
 }
-
-#endif //BPC_PC1T_SNAKE_FRUITARRAY_H

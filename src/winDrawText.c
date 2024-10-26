@@ -1,11 +1,8 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_WINDRAWTEXT_H
-#define BPC_PC1T_SNAKE_WINDRAWTEXT_H
-
-#include <windows.h>
+#include "windows.h"
 
 void DrawTextSimple(HDC hdc, RECT clientRect, char *inputText, int fontSize, COLORREF color, UINT format) {
     SetBkMode(hdc, TRANSPARENT);
@@ -27,5 +24,3 @@ void DrawTextSimple(HDC hdc, RECT clientRect, char *inputText, int fontSize, COL
     SelectObject(hdc, hOldFont);
     DeleteObject(hNewFont);
 }
-
-#endif //BPC_PC1T_SNAKE_WINDRAWTEXT_H

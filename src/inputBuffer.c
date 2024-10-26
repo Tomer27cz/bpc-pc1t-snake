@@ -1,22 +1,9 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_INPUTBUFFER_H
-#define BPC_PC1T_SNAKE_INPUTBUFFER_H
-
-#include <stdio.h>
-#include <stdlib.h>
-
-
-
-// Queue structure
-typedef struct {
-    int buffer[MAX_BUFFER_SIZE];  // Array to hold the direction changes
-    int front;   // Index of the front of the queue
-    int rear;    // Index of the rear of the queue
-    int size;    // Number of items in the queue
-} DirectionQueue;
+#include "../include/inputBuffer.h"
+#include "../include/base.h"
 
 // Initialize the direction queue
 void dInitQueue(DirectionQueue* q) {
@@ -55,5 +42,3 @@ int dDequeue(DirectionQueue* q) {
     q->size--;
     return direction;
 }
-
-#endif //BPC_PC1T_SNAKE_INPUTBUFFER_H

@@ -1,30 +1,17 @@
 #include <stdio.h>
 #include <conio.h>
 #include <windows.h>
+#include <math.h>
 
-#define WIDTH 10
-#define HEIGHT 10
-#define MAX_FRUITS 10
-#define SAVE_FILE "scores.txt"
-#define MAX_BUFFER_SIZE 4
-#define MIN_TIME_TO_CROSS 2000 // 2 seconds
-#define MAX_TIME_TO_CROSS 6000 // 6 seconds
-
-#include "snake/snakeStruct.h"
-#include "snake/snakeLogic.h"
-
-#include "console/consoleDrawEnd.h"
-#include "console/consoleDrawSnake.h"
-#include "console/consoleDrawScore.h"
-#include "console/consoleInput.h"
-
-#include "win_api/winDrawSnake.h"
-#include "win_api/winDrawEndScreen.h"
-#include "win_api/winDrawMainScreen.h"
-
-#include "lib/statFile.h"
-#include "lib/inputBuffer.h"
-#include "lib/fruitArray.h"
+#include "include/fruitArray.h"
+#include "include/inputBuffer.h"
+#include "include/point.h"
+#include "include/snake.h"
+#include "include/statFile.h"
+#include "include/winDrawScreen.h"
+#include "include/winDrawSnake.h"
+#include "include/winDrawText.h"
+#include "include/base.h"
 
 static int Running = 1;
 static int State = 0;

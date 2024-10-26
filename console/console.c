@@ -1,15 +1,23 @@
 //
-// Created by Tomer27cz on 14.10.2024.
+// Created by Tomer27cz on 24.10.2024.
 //
 
-#ifndef BPC_PC1T_SNAKE_CONSOLEDRAWSNAKE_H
-#define BPC_PC1T_SNAKE_CONSOLEDRAWSNAKE_H
-
+#include "windows.h"
 #include "stdlib.h"
 #include "stdio.h"
-#include "windows.h"
 
-#include "../snake/snakeStruct.h"
+#include "console.h"
+
+void consoleDrawScore(int scoreCount, int* scores) {
+    if (scores == NULL) {
+        return;
+    }
+
+    printf("Best Scores\n");
+    for (int i = 0; i < scoreCount; i++) {
+        printf("%d. %d\n", i + 1, scores[i]);
+    }
+}
 
 void consoleDraw(struct gameData *gameData) {
     system("cls");
@@ -64,4 +72,33 @@ void consoleDraw(struct gameData *gameData) {
     printf("Press X to quit the game.");
 }
 
-#endif //BPC_PC1T_SNAKE_CONSOLEDRAWSNAKE_H
+int consoleDrawEnd(struct gameData *gameData) {
+    printf("\nGame Over!\n\n");
+    printf("Score: %d  |  Length: %d", gameData->score, gameData->tailLen);
+    printf("\nPress Enter to play again or Esc to exit\n");
+
+    while (1) {
+        int ch = getch();
+        if (ch == 13) {
+            return 1;
+        } else if (ch == 27) {
+            return 0;
+        }
+    }
+
+}
+
+void consoleInput(struct gameData *gameData) {
+    // use windows async function to get key press
+    if (GetAsyncKeyState(VK_UP) || GetAsyncKeyState(0x41) || GetAsyncKeyState(0x61)) {
+        changeDirection(gameData, 3);
+    } else if (GetAsyncKeyState(VK_DOWN) || GetAsyncKeyState(0x53) || GetAsyncKeyState(0x73)) {
+        changeDirection(gameData, 4);
+    } else if (GetAsyncKeyState(VK_LEFT) || GetAsyncKeyState(0x57) || GetAsyncKeyState(0x77)) {
+        changeDirection(gameData, 1);
+    } else if (GetAsyncKeyState(VK_RIGHT) || GetAsyncKeyState(0x44) || GetAsyncKeyState(0x64)) {
+        changeDirection(gameData, 2);
+    } else if (GetAsyncKeyState(27)) {
+
+    }
+}
