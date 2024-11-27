@@ -7,7 +7,12 @@
 
 #include "snake.h"
 
-void writeScore(const char *filename, struct gameData *gameData);
-int* getTopScores(const char *filename, int *top_count);
+typedef struct {
+    char name[MAX_NAME_CHARS];
+    int score;
+} Score;
+
+void writeScore(const char *filename, struct gameData *gameData, const char *name);
+Score* getTopScores(const char *filename, int *scores);
 
 #endif //BPC_PC1T_SNAKE_STATFILE_H

@@ -21,13 +21,15 @@ struct gameData {
 
     int gameOver;
     int score;
+    char name[MAX_NAME_CHARS];
 
     int level;
     int maxLevel;
 
-    int clockDelay;
-    int minClockDelay;
-    int speedStep;
+    float framesPerMove;
+    float speedStep;
+    float maxSpeed;
+    float minSpeed;
 
     int x;
     int y;
@@ -36,7 +38,7 @@ struct gameData {
 };
 
 void generateFruit(struct gameData *gameData);
-void setup(struct gameData *gameData);
+void setup(struct gameData *gameData, const char *name);
 void logic(struct gameData *gameData);
 void changeDirection(struct gameData *gameData, int direction);
 

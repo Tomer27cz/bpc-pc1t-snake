@@ -7,56 +7,94 @@
 #include "stdlib.h"
 
 #include "../include/snake.h"
+#include "../include/statFile.h"
 
-// Function to compare two integers for qsort
-int compare(const void *a, const void *b) {
-    return (*(int *)b - *(int *)a); // Sort in descending order
+char* spacePad(char *str, int width) {
+    int len = strlen(str);
+    if (len >= width) {
+        return str;
+    }
+
+    char *padded = malloc(width + 1);
+    if (!padded) {
+        perror("Memory allocation error");
+        return NULL;
+    }
+
+    memset(padded, ' ', width);
+    padded[width] = '\0';
+    memcpy(padded, str, len);
+    return padded;
 }
 
-// Function to read scores from file, sort them, and return top 10
-int* getTopScores(const char *filename, int *top_count) {
+int compare_scores(const void *a, const void *b) {
+    Score *score_a = (Score *)a;
+    Score *score_b = (Score *)b;
+    return score_b->score - score_a->score;
+}
+
+Score* getTopScores(const char *filename, int *scores) {
     FILE *file = fopen(filename, "r");
     if (!file) {
-        printf("Could not open file %s\n", filename);
+        perror("Error opening file");
+        *scores = 0;
         return NULL;
     }
 
-    int *scores = NULL;
-    int score, count = 0;
-    size_t capacity = 10;
+    Score *score_list = NULL;
+    int count = 0, capacity = 10;
 
-    scores = (int *)malloc(capacity * sizeof(int));
-    if (!scores) {
-        printf("Memory allocation failed\n");
+    score_list = malloc(capacity * sizeof(Score));
+    if (!score_list) {
+        perror("Memory allocation error");
         fclose(file);
+        *scores = 0;
         return NULL;
     }
 
-    // Read integers from the file
-    while (fscanf(file, "%d", &score) != EOF) {
+    char line[256];
+    while (fgets(line, sizeof(line), file)) {
         if (count >= capacity) {
             capacity *= 2;
-            scores = (int *)realloc(scores, capacity * sizeof(int));
-            if (!scores) {
-                printf("Memory reallocation failed\n");
+            score_list = realloc(score_list, capacity * sizeof(Score));
+            if (!score_list) {
+                perror("Memory allocation error");
                 fclose(file);
+                *scores = 0;
                 return NULL;
             }
         }
-        scores[count++] = score;
+
+        char name[MAX_NAME_CHARS];
+        int score;
+        if (sscanf(line, "%19[^,],%d", name, &score) == 2) {
+            strncpy(score_list[count].name, spacePad(name, MAX_NAME_CHARS), MAX_NAME_CHARS);
+            score_list[count].name[MAX_NAME_CHARS - 1] = '\0'; // Ensure null termination
+            score_list[count].score = score;
+            count++;
+        }
     }
+
     fclose(file);
 
-    // Sort the scores in descending order
-    qsort(scores, count, sizeof(int), compare);
+    qsort(score_list, count, sizeof(Score), compare_scores);
 
-    // Return the top 10 or fewer if less than 10 scores
-    *top_count = (count < 10) ? count : 10;
+    int top_n = count < 10 ? count : 10;
+    Score *top_scores = malloc(top_n * sizeof(Score));
+    if (!top_scores) {
+        perror("Memory allocation error");
+        free(score_list);
+        *scores = 0;
+        return NULL;
+    }
+    memcpy(top_scores, score_list, top_n * sizeof(Score));
+    free(score_list);
 
-    return scores;
+    *scores = top_n;
+    return top_scores;
 }
 
-void writeScore(const char *filename, struct gameData *gameData) {
+void writeScore(const char *filename, struct gameData *gameData, const char *name) {
     if (gameData->score == 0) {
         return;
     }
@@ -75,6 +113,11 @@ void writeScore(const char *filename, struct gameData *gameData) {
         }
     }
 
-    fprintf(file, "%d\n", gameData->score);
+    // if name is empty, use "Unknown"
+    if (strlen(name) == 0) {
+        name = "Unknown";
+    }
+
+    fprintf(file, "%s,%d\n", name, gameData->score);
     fclose(file);
 }

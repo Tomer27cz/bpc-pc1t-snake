@@ -10,7 +10,8 @@
 #define MAX_FRUITS 10
 #define SAVE_FILE "scores.txt"
 #define MAX_BUFFER_SIZE 4
-#define MIN_TIME_TO_CROSS 2000 // 2 seconds
-#define MAX_TIME_TO_CROSS 6000 // 6 seconds
+#define MAX_NAME_CHARS 20
+#define MIN_TIME_TO_CROSS 2500 // 2.5 seconds
+#define MAX_TIME_TO_CROSS 5000 // 5 seconds
 
 #endif //BPC_PC1T_SNAKE_BASE_H

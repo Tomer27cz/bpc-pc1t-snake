@@ -5,6 +5,8 @@
 #include "stdlib.h"
 #include "math.h"
 
+#include "stdio.h"
+
 #include "../include/snake.h"
 #include "../include/fruitArray.h"
 #include "../include/inputBuffer.h"
@@ -37,29 +39,37 @@ void generateFruit(struct gameData *gameData) {
     }
 }
 
-void setup(struct gameData *gameData) {
-    gameData->tail[0].x = (WIDTH / 2) - 1;
-    gameData->tail[0].y = HEIGHT / 2;
+void setup(struct gameData *gameData, const char *name) {
+//    gameData->tail[0].x = (WIDTH / 2) - 1;
+//    gameData->tail[0].y = HEIGHT / 2;
 
-    for (int i = 1; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         gameData->tail[i].x = -1;
         gameData->tail[i].y = -1;
     }
 
     gameData->gameOver = 0;
     gameData->direction = 0;
-    gameData->tailLen = 1;
+    gameData->tailLen = 0;
     gameData->score = 0;
+
+    for (int i = 0; i < MAX_NAME_CHARS; i++) {
+        gameData->name[i] = name[i];
+    }
 
     gameData->level = 1;
     gameData->maxLevel = (WIDTH * HEIGHT) / 10;
 
-    int sizeConstant = (WIDTH + HEIGHT) / 2;
+    float sizeConstant = (float)(WIDTH + HEIGHT) / 2;
 
-    // clockDelay: 400 is very slow, 75 is very fast
-    gameData->clockDelay = MAX_TIME_TO_CROSS / sizeConstant < 400 ? MAX_TIME_TO_CROSS / sizeConstant : 400; // maxClockDelay
-    gameData->minClockDelay = MIN_TIME_TO_CROSS / sizeConstant > 75 ? MIN_TIME_TO_CROSS / sizeConstant : 75; // minClockDelay
-    gameData->speedStep = (gameData->clockDelay - gameData->minClockDelay) / gameData->maxLevel; // speedStep - subtract from clockDelay at level change
+    float maxSpeed = (MIN_TIME_TO_CROSS / sizeConstant) / 1000 * 60;
+    float minSpeed = (MAX_TIME_TO_CROSS / sizeConstant) / 1000 * 60;
+
+    gameData->maxSpeed = maxSpeed < 3 ? 3 : maxSpeed;
+    gameData->minSpeed = minSpeed > 30 ? 30 : minSpeed;
+
+    gameData->speedStep = (gameData->minSpeed - gameData->maxSpeed) / (float)gameData->maxLevel;
+    gameData->framesPerMove = minSpeed;
 
     dInitQueue(&gameData->queue);
 
@@ -141,9 +151,8 @@ void logic(struct gameData *gameData) {
             if (gameData->tailLen % 10 == 0) {
                 gameData->level++;
 
-                // Increase the speed of the snake (decrease clockDelay)
-                if ((gameData->clockDelay - gameData->speedStep) > gameData->minClockDelay) {
-                    gameData->clockDelay -= gameData->speedStep;
+                if (gameData->framesPerMove > gameData->maxSpeed) {
+                    gameData->framesPerMove -= gameData->speedStep;
                 }
             }
 

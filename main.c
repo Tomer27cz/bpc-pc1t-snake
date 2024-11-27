@@ -1,225 +1,218 @@
-#include <stdio.h>
-#include <conio.h>
-#include <windows.h>
-#include <math.h>
+#include "raylib.h"
+#include "stdlib.h"
 
+#include "include/snake.h"
+#include "include/base.h"
 #include "include/fruitArray.h"
 #include "include/inputBuffer.h"
 #include "include/point.h"
-#include "include/snake.h"
 #include "include/statFile.h"
-#include "include/winDrawScreen.h"
-#include "include/winDrawSnake.h"
-#include "include/winDrawText.h"
-#include "include/base.h"
 
-static int Running = 1;
-static int State = 0;
+//----------------------------------------------------------------------------------
+// Types and Structures Definition
+//----------------------------------------------------------------------------------
+
+typedef enum GameScreen { TITLE=0, GAMEPLAY, ENDING } GameScreen;
+
+//----------------------------------------------------------------------------------
+// Global Variables Definition
+//----------------------------------------------------------------------------------
 struct gameData gameData;
 
 int scoreCount;
-int *scores;
+Score *scores;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int topBarHeight = 100;
+int screenWidth = 800;
+int screenHeight = 800;
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-    const char CLASS_NAME[] = "GridWindowClass";
+//----------------------------------------------------------------------------------
+// Main Entry Point
+//----------------------------------------------------------------------------------
+int main(void) {
+    // Initialization =================================================================
+    scores = getTopScores(SAVE_FILE, &scoreCount);
+    GameScreen currentScreen = TITLE;
 
-    WNDCLASS wc = { 0 };
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = CLASS_NAME;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    // Text BOX
+    char name[MAX_NAME_CHARS + 1] = "\0"; // Add null terminator at the end of the string.
+    int letterCount = 0;
 
-    if (!RegisterClass(&wc)) {
-        MessageBoxA(NULL, "Failed to register window class", "Error", MB_ICONERROR | MB_OK);
-        return 0;
-    }
+    Rectangle textBox = { 160, 200, 500, 50 };
+    bool mouseOnText = false;
 
-    HWND hwnd = CreateWindowEx(
-        0,                              // Optional window styles.
-        CLASS_NAME,                     // Window class
-        "Snake",    // Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
-        CW_USEDEFAULT, CW_USEDEFAULT,   // Size and position
-        600, 660,                       // Width and height
-        NULL,                           // Parent window
-        NULL,                           // Menu
-        hInstance,                      // Instance handle
-        NULL                            // Additional application data
-    );
+    // Grid size
+    screenHeight += topBarHeight;
+    int gridWidth = screenWidth / WIDTH;
+    int gridHeight = (screenHeight-topBarHeight) / HEIGHT;
 
-    if (hwnd == NULL) {
-        MessageBoxA(NULL, "Failed to create window", "Error", MB_ICONERROR | MB_OK);
-        return 0;
-    }
+    // WINDOW INIT
+    InitWindow(screenWidth, screenHeight, "Snake Game - BPC-PC1T");
+    SetTargetFPS(60);
+    int framesCounter = 0;
 
-    setup(&gameData);
-    ShowWindow(hwnd, nCmdShow);
+    // Main game loop =================================================================
+    while (!WindowShouldClose()) {
+        switch (currentScreen) {
+            case TITLE:
 
-    while (Running) {
-        MSG Message;
-        while(PeekMessage(&Message, 0, 0, 0, PM_REMOVE)) {
-            if(Message.message == WM_QUIT) {
-                Running = 0;
-            }
-            TranslateMessage(&Message);
-            DispatchMessageA(&Message);
-        }
+                mouseOnText = CheckCollisionPointRec(GetMousePosition(), textBox) ? true : false;
+                if (mouseOnText) {
+                    SetMouseCursor(MOUSE_CURSOR_IBEAM); // Set the window's cursor to the I-Beam
 
-        Sleep(State == 1 ? gameData.clockDelay : 500);
+                    // Get char pressed (unicode character) on the queue
+                    int key = GetCharPressed();
+                    while (key > 0) {
 
-        logic(&gameData);
-        InvalidateRect(hwnd, NULL, TRUE);
+                        // Only keys in range [32..125]
+                        if ((key >= 32) && (key <= 125) && (letterCount < MAX_NAME_CHARS)) {
+                            name[letterCount] = (char)key;
+                            name[letterCount+1] = '\0'; // Add null terminator at the end of the string.
+                            letterCount++;
+                        }
 
-        if (gameData.gameOver) {
-            State = 2;
-            InvalidateRect(hwnd, NULL, TRUE);
-        }
-    }
+                        key = GetCharPressed();  // Check next character in the queue
+                    }
 
-    return 0;
-}
+                    if (IsKeyPressed(KEY_BACKSPACE)) {
+                        letterCount--;
+                        if (letterCount < 0) letterCount = 0;
+                        name[letterCount] = '\0';
+                    }
+                } else {
+                    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+                }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    static double squareWidth, squareHeight;
-    static int topOffset;
+                framesCounter = mouseOnText ? framesCounter + 1 : 0;
 
-    switch (uMsg) {
-        case WM_CREATE: {
-            scores = getTopScores(SAVE_FILE, &scoreCount);
-            break;
-        }
-
-        case WM_SIZE: {
-            // Get new window dimensions
-            double width = LOWORD(lParam);
-            double height = HIWORD(lParam);
-
-            // Calculate area for text
-            topOffset = ceil(height / 10);
-
-            // Calculate new square sizes based on window size
-            squareWidth = width / gameData.width;
-            squareHeight = (height - topOffset) / gameData.height;
-
-            // Force a repaint
-            InvalidateRect(hwnd, NULL, TRUE);
-        }
-        break;
-
-        case WM_PAINT: {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-
-            RECT clientRect;
-            GetClientRect(hwnd, &clientRect);
-
-            switch (State) {
-                case 1:
-                    DrawSnake(hdc, &gameData, clientRect, squareWidth, squareHeight, gameData.width, gameData.height, topOffset);
-                    break;
-                case 2:
-                    DrawEndScreen(hdc, &gameData, clientRect);
-                    break;
-                default:
-                    DrawMainScreen(hdc, clientRect, scoreCount, scores);
-                    break;
-            }
-
-            EndPaint(hwnd, &ps);
-        }
-        break;
-
-        case WM_KEYDOWN: {
-            switch(wParam) {
-                case 0x41: // A
-                case 0x61: // a
-                case VK_LEFT: // Left arrow
+                if (IsKeyPressed(KEY_ENTER)) {
+                    setup(&gameData, name);
+                    currentScreen = GAMEPLAY;
+                }
+                break;
+            case GAMEPLAY:
+                if (IsKeyDown(KEY_LEFT)) {
                     changeDirection(&gameData, 1);
-                    break;
-                case 0x44: // D
-                case 0x64: // d
-                case VK_RIGHT:
+                } else if (IsKeyDown(KEY_RIGHT)) {
                     changeDirection(&gameData, 2);
-                    break;
-                case 0x57: // W
-                case 0x77: // w
-                case VK_UP: // Up arrow
+                } else if (IsKeyDown(KEY_UP)) {
                     changeDirection(&gameData, 3);
-                    break;
-                case 0x53: // S
-                case 0x73: // s
-                case VK_DOWN: // Down arrow
+                } else if (IsKeyDown(KEY_DOWN)) {
                     changeDirection(&gameData, 4);
-                    break;
-                case VK_ESCAPE:
-                    writeScore(SAVE_FILE, &gameData);
-                    Running = 0;
-                    break;
-                case 0x0D: // Enter
-                    writeScore(SAVE_FILE, &gameData);
-                    setup(&gameData);
+                }
 
-                    State = 1;
-                    InvalidateRect(hwnd, NULL, TRUE);
-                    break;
-                default:
-                    break;
+                if (framesCounter >= (int)gameData.framesPerMove) {
+                    logic(&gameData);
+                    framesCounter = 0;
+                }
+
+                if (gameData.gameOver) {
+                    writeScore(SAVE_FILE, &gameData, name);
+                    currentScreen = ENDING;
+                }
+
+                framesCounter++;
+                break;
+            case ENDING:
+                if (IsKeyPressed(KEY_ENTER)) {
+                    setup(&gameData, name);
+                    currentScreen = GAMEPLAY;
+                } else if (IsKeyPressed(KEY_ESCAPE)) {
+                    currentScreen = TITLE;
+                } else if (IsKeyPressed(KEY_BACKSPACE)) {
+                    currentScreen = TITLE;
+                    scores = getTopScores(SAVE_FILE, &scoreCount);
+                }
+                framesCounter++;
+                break;
+            default: break;
+        }
+
+        // Draw =======================================================================
+
+        BeginDrawing();
+
+            ClearBackground(RAYWHITE);
+
+            switch (currentScreen) {
+                case TITLE: {
+                    DrawText("SNAKE", 20, 20, 40, DARKGRAY);
+
+                    DrawText("Enter Your Name", 235, 120, 40, DARKGRAY);
+                    DrawText("PLACE MOUSE OVER INPUT BOX!", 240, 160, 20, GRAY);
+
+                    DrawRectangleRec(textBox, LIGHTGRAY);
+                    if (mouseOnText) DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, RED);
+                    else DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, DARKGRAY);
+
+                    DrawText(name, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+
+                    DrawText(TextFormat("INPUT CHARS: %i/%i", letterCount, MAX_NAME_CHARS), 315, 260, 20, DARKGRAY);
+
+                    if (mouseOnText) {
+                        if (letterCount < MAX_NAME_CHARS) {
+                            // Draw blinking underscore char
+                            if (((framesCounter/20)%2) == 0) {
+                                DrawText("_", (int)textBox.x + 8 + MeasureText(name, 40), (int)textBox.y + 12, 40, MAROON);
+                            }
+                        }
+                        else {
+                            DrawText("Press BACKSPACE to delete chars...", 230, 300, 20, GRAY);
+                        }
+                    }
+
+                    DrawText("PRESS [ENTER] to START GAMEPLAY", 220, 330, 20, GRAY);
+
+                    DrawText("TOP SCORES", 250, 400, 50, DARKGRAY);
+                    for (int i = 0; i < scoreCount; i++) {
+                        DrawText(TextFormat("%i. %s", i + 1, scores[i].name), 250, 500 + 20*i, 20, DARKGRAY);
+                        DrawText(TextFormat("- %i", scores[i].score), 550, 500 + 20*i, 20, DARKGRAY);
+                    }
+
+                } break;
+                case GAMEPLAY: {
+                    DrawRectangle(gameData.x*gridWidth, gameData.y*gridHeight+topBarHeight, gridWidth, gridHeight, DARKGREEN);
+
+                    for (int i = 0; i < gameData.tailLen; i++) {
+                        DrawRectangle(gameData.tail[i].x*gridWidth, gameData.tail[i].y*gridHeight+topBarHeight, gridWidth, gridHeight, GREEN);
+                    }
+
+                    for (int i = 0; i < gameData.fruits.size; i++) {
+                        DrawRectangle(gameData.fruits.array[i].x*gridWidth, gameData.fruits.array[i].y*gridHeight+topBarHeight, gridWidth, gridHeight, RED);
+                    }
+
+                    DrawLine(0, topBarHeight, screenWidth, topBarHeight, GRAY);
+
+                    DrawText(TextFormat("%i", gameData.score), 20, 20, 75, DARKGRAY);
+                    DrawText(TextFormat("LEVEL: %i", gameData.level), screenWidth/2, 10, 40, DARKGRAY);
+                    DrawText(TextFormat("SPEED: %.2f", gameData.framesPerMove), screenWidth/2, 55, 40, DARKGRAY);
+
+                    DrawFPS(screenWidth-75, 10);
+                } break;
+                case ENDING: {
+                    DrawText(TextSubtext("GAME OVER!", 0, framesCounter/10), 100, 150, 100, RED);
+                    DrawText(TextFormat("SCORE: %i", gameData.score), 100, 310, 60, DARKGRAY);
+
+                    DrawText("PRESS [ENTER] to PLAY AGAIN", 250, 450, 20, GRAY);
+                    DrawText("PRESS [BACKSPACE] to GO TO TITLE", 225, 500, 20, GRAY);
+                    DrawText("PRESS [ESCAPE] to EXIT", 275, 550, 20, GRAY);
+                } break;
+                default: break;
+
             }
-        } break;
 
-        case WM_DESTROY: // Window is being destroyed (by clicking the X button)
-            writeScore(SAVE_FILE, &gameData);
-            PostQuitMessage(0);
-            return 0;
+        EndDrawing();
 
-        default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        // ==============================================================================
     }
+
+    // Save score if the game is not over
+    if (currentScreen != ENDING) {
+        writeScore(SAVE_FILE, &gameData, name);
+    }
+
+    // De-Initialization
+    CloseWindow();
+
     return 0;
 }
-
-//int main() {
-//    scores = getTopScores(SAVE_FILE, &scoreCount);
-//    consoleDrawScore(scoreCount, scores);
-//
-//    printf("Use WASD or arrow keys to move.\n");
-//    printf("Press Enter to start the game.\n");
-//    printf("Press ESC to exit the game.\n");
-//
-//    while (1) {
-//        int ch = getch();
-//        if (ch == 13) { // Enter
-//            break;
-//        } else if (ch == 27) { // ESC
-//            exit(0);
-//        }
-//    }
-//
-//    setup(&gameData);
-//
-//    while (Running) {
-//        consoleInput(&gameData);
-//        logic(&gameData);
-//        consoleDraw(&gameData);
-//        Sleep(200 - gameData.speed);
-//
-//        if (gameData.gameOver) {
-//            writeScore(SAVE_FILE, &gameData);
-//            State = 2;
-//            if (!consoleDrawEnd(&gameData)) {
-//                Running = 0;
-//            }
-//        }
-//    }
-//
-//    // Keep windows from closing
-//    getch();
-//
-//    return 0;
-//
-//}
-
